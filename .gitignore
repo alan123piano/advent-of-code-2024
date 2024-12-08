@@ -1,1 +1,4 @@
 /dist-newstyle
+
+# don't track private inputs
+/input/**/input.txt
