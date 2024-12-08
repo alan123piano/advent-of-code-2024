@@ -1,11 +1,11 @@
 module Day3 (part1, part2) where
 
+import Control.Applicative (Alternative, empty, (<|>))
 import Control.Monad (ap, liftM)
 import Data.Char (isDigit)
 import qualified Data.List as List
 
--- multiplication instruction
-newtype MulInst = MulInst (Int, Int) deriving (Show)
+data Inst = MulInst (Int, Int) | DoInst | DontInst deriving (Show)
 
 newtype Parser a = Parser {runParser :: String -> Maybe (a, String)}
 
@@ -31,6 +31,19 @@ instance Monad Parser where
   return :: a -> Parser a
   return = pure
 
+instance Alternative Parser where
+  empty :: Parser a
+  empty = Parser {runParser = const Nothing}
+
+  (<|>) :: Parser a -> Parser a -> Parser a
+  p1 <|> p2 =
+    Parser
+      { runParser = \s -> case (runParser p1 s, runParser p2 s) of
+          (Just r1, _) -> Just r1
+          (_, Just r2) -> Just r2
+          (Nothing, Nothing) -> Nothing
+      }
+
 parseLiteral :: String -> Parser ()
 parseLiteral literal =
   Parser
@@ -48,7 +61,7 @@ parseInt =
         (ds, s') -> Just (read ds :: Int, s')
     }
 
-parseMulInst :: Parser MulInst
+parseMulInst :: Parser Inst
 parseMulInst = do
   parseLiteral "mul("
   n1 <- parseInt
@@ -57,24 +70,51 @@ parseMulInst = do
   parseLiteral ")"
   return (MulInst (n1, n2))
 
--- parse out as many MulInsts as possible, ignoring invalid chars
-collectMulInsts :: [MulInst] -> String -> [MulInst]
-collectMulInsts acc s =
-  case runParser parseMulInst s of
-    Just (mulInst, s') -> collectMulInsts (mulInst : acc) s'
-    Nothing -> case s of
-      _ : s' -> collectMulInsts acc s'
-      [] -> acc
+parseDoInst :: Parser Inst
+parseDoInst = do
+  parseLiteral "do()"
+  return DoInst
 
-runMulInst :: MulInst -> Int
-runMulInst (MulInst (n1, n2)) = n1 * n2
+parseDontInst :: Parser Inst
+parseDontInst = do
+  parseLiteral "don't()"
+  return DontInst
+
+parseInst :: Parser Inst
+parseInst = parseMulInst <|> parseDoInst <|> parseDontInst
+
+-- parse out as many expressions as possible, skipping chars on parse failures
+collectExprs :: Parser a -> String -> [a]
+collectExprs p =
+  reducer []
+  where
+    reducer acc s =
+      case runParser p s of
+        Just (a, s') -> reducer (acc ++ [a]) s'
+        Nothing -> case s of
+          _ : s' -> reducer acc s'
+          [] -> acc
+
+runInsts :: [Inst] -> Int
+runInsts =
+  reducer True (0 :: Int)
+  where
+    reducer mulEnabled sumAcc insts =
+      case insts of
+        (inst : insts') -> case inst of
+          MulInst (n1, n2) -> reducer mulEnabled (if mulEnabled then sumAcc + n1 * n2 else sumAcc) insts'
+          DoInst -> reducer True sumAcc insts'
+          DontInst -> reducer False sumAcc insts'
+        [] -> sumAcc
 
 part1 :: String -> Int
 part1 contents =
-  sum $ map runMulInst mulInsts
+  runInsts insts
   where
-    mulInsts = collectMulInsts [] contents
+    insts = collectExprs parseMulInst contents
 
 part2 :: String -> Int
 part2 contents =
-  undefined
+  runInsts insts
+  where
+    insts = collectExprs parseInst contents
