@@ -5,6 +5,7 @@ import qualified Day1
 import qualified Day2
 import qualified Day3
 import qualified Day4
+import qualified Day5
 import System.Environment (lookupEnv)
 
 main :: IO ()
@@ -28,6 +29,8 @@ main = do
             (3, 2) -> Day3.part2 contents
             (4, 1) -> Day4.part1 contents
             (4, 2) -> Day4.part2 contents
+            (5, 1) -> Day5.part1 contents
+            (5, 2) -> Day5.part2 contents
             (_, _) -> error $ "Unhandled (day, part): " ++ show (day, part)
         )
   print solution
