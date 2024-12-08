@@ -20,10 +20,29 @@ isReportSafe (Report levels) =
 
 part1 :: String -> Int
 part1 contents =
-  length $ filter isReportSafe reports
+  length safeReports
   where
     reports = map parseReport (lines contents)
+    safeReports = filter isReportSafe reports
+
+removeLevel :: Report -> Int -> Report
+removeLevel (Report levels) index =
+  Report (before ++ after)
+  where
+    before = take index levels
+    after = drop (index + 1) levels
+
+-- The 'Problem Dampener' can remove a bad level from a report, making it safe
+isReportSafeWithProblemDampener :: Report -> Bool
+isReportSafeWithProblemDampener (Report levels) =
+  any isReportSafe (Report levels : moddedReports)
+  where
+    indices = [0 .. (length levels - 1)]
+    moddedReports = map (removeLevel (Report levels)) indices
 
 part2 :: String -> Int
 part2 contents =
-  undefined
+  length safeReports
+  where
+    reports = map parseReport (lines contents)
+    safeReports = filter isReportSafeWithProblemDampener reports

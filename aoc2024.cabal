@@ -9,6 +9,7 @@ common warnings
         -Wno-all-missed-specialisations
         -Wno-implicit-prelude
         -Wno-missing-kind-signatures
+        -Wno-missing-deriving-strategies
         -Wno-missing-safe-haskell-mode
         -Wno-prepositive-qualified-module
         -Wno-safe
