@@ -82,12 +82,14 @@ part2 contents =
   where
     (labMap, guardCoord) = parseLabMap contents
 
+    path = getPath labMap guardCoord (Coord (-1, 0))
+    visitedCoords = case path of
+      FinitePath coords -> Set.fromList coords
+      Cycle -> error "unexpected cycle"
+
     -- possible spots to place obstruction
     possibleSpots :: Set Coord
-    possibleSpots =
-      Set.delete guardCoord $
-        Set.fromList $
-          allCoordsInGrid labMap
+    possibleSpots = Set.delete guardCoord visitedCoords
 
     addObstruction :: Grid Cell -> Coord -> Grid Cell
     addObstruction grid coord =
