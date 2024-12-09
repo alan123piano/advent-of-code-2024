@@ -1,4 +1,9 @@
-module Common (splitList, sliceList, swapIndicesInList) where
+module Common.List
+  ( splitList,
+    sliceList,
+    swapIndicesInList,
+  )
+where
 
 import Data.List (stripPrefix)
 

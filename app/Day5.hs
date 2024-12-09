@@ -1,6 +1,6 @@
 module Day5 (part1, part2) where
 
-import Common (splitList, swapIndicesInList)
+import Common.List (splitList, swapIndicesInList)
 import Control.Applicative (asum)
 import Data.Maybe (isNothing)
 

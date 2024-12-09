@@ -6,6 +6,7 @@ import qualified Day2
 import qualified Day3
 import qualified Day4
 import qualified Day5
+import qualified Day6
 import System.Environment (lookupEnv)
 
 main :: IO ()
@@ -19,18 +20,21 @@ main = do
   let input = fromMaybe "example.txt" mInput
 
   contents <- readFile ("input" ++ "/" ++ show day ++ "/" ++ input)
-  let solution =
+  let runner =
         ( case (day, part) of
-            (1, 1) -> Day1.part1 contents
-            (1, 2) -> Day1.part2 contents
-            (2, 1) -> Day2.part1 contents
-            (2, 2) -> Day2.part2 contents
-            (3, 1) -> Day3.part1 contents
-            (3, 2) -> Day3.part2 contents
-            (4, 1) -> Day4.part1 contents
-            (4, 2) -> Day4.part2 contents
-            (5, 1) -> Day5.part1 contents
-            (5, 2) -> Day5.part2 contents
+            (1, 1) -> Day1.part1
+            (1, 2) -> Day1.part2
+            (2, 1) -> Day2.part1
+            (2, 2) -> Day2.part2
+            (3, 1) -> Day3.part1
+            (3, 2) -> Day3.part2
+            (4, 1) -> Day4.part1
+            (4, 2) -> Day4.part2
+            (5, 1) -> Day5.part1
+            (5, 2) -> Day5.part2
+            (6, 1) -> Day6.part1
+            (6, 2) -> Day6.part2
             (_, _) -> error $ "Unhandled (day, part): " ++ show (day, part)
         )
+  let solution = runner contents
   print solution
