@@ -4,6 +4,7 @@ module Common.Grid
     parseGrid,
     allCoordsInGrid,
     atCoord,
+    setCoord,
     addCoord,
     scaleCoord,
     negCoord,
@@ -64,6 +65,14 @@ allCoordsInGrid grid =
 atCoord :: Coord -> Grid a -> Maybe a
 atCoord coord (Grid {gValues = values}) =
   Map.lookup coord values
+
+setCoord :: Coord -> a -> Grid a -> Grid a
+setCoord coord v grid =
+  Grid
+    { gValues = Map.insert coord v (gValues grid),
+      gNRows = gNRows grid,
+      gNCols = gNCols grid
+    }
 
 addCoord :: Coord -> Coord -> Coord
 addCoord (Coord (r1, c1)) (Coord (r2, c2)) = Coord (r1 + r2, c1 + c2)
