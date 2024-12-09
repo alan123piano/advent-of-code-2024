@@ -1,4 +1,4 @@
-module Common (splitList) where
+module Common (splitList, sliceList, swapIndicesInList) where
 
 import Data.List (stripPrefix)
 
@@ -12,3 +12,24 @@ splitList delim =
         Nothing -> case s of
           (hd : tl) -> reducer acc (wip ++ [hd]) tl
           [] -> if not (null wip) then acc ++ [wip] else acc
+
+-- return xs[i1..i2] (incl. i1, excl. i2), using zero-indexed convention
+sliceList :: [a] -> Int -> Int -> [a]
+sliceList xs i1 i2 =
+  take len (drop i1' xs)
+  where
+    len = i2 - i1'
+    i1' = max i1 0
+
+swapIndicesInList :: [a] -> Int -> Int -> [a]
+swapIndicesInList xs i1 i2 | i1 == i2 = xs
+swapIndicesInList xs i1 i2 =
+  sliceList xs 0 l
+    ++ [xr]
+    ++ sliceList xs (l + 1) i2
+    ++ [xl]
+    ++ drop (i2 + 1) xs
+  where
+    xl = xs !! l
+    xr = xs !! r
+    (l, r) = (min i1 i2, max i1 i2)

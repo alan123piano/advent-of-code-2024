@@ -1,10 +1,8 @@
 module Day5 (part1, part2) where
 
-import Common (splitList)
-import Data.Map (Map)
-import qualified Data.Map as Map
-import Data.Set (Set)
-import qualified Data.Set as Set
+import Common (splitList, swapIndicesInList)
+import Control.Applicative (asum)
+import Data.Maybe (isNothing)
 
 newtype OrderingRule = OrderingRule (Int, Int) deriving (Show)
 
@@ -31,25 +29,8 @@ parseInput s =
     sp = splitList [""] (lines s)
 
 isCompliantWithRules :: [OrderingRule] -> Update -> Bool
-isCompliantWithRules rules (Update pages) =
-  not (any checkForViolation rules)
-  where
-    -- check if rule is being violated
-    checkForViolation :: OrderingRule -> Bool
-    checkForViolation (OrderingRule (a, b)) =
-      case Map.lookup b succSet of
-        Just s -> Set.member a s
-        Nothing -> False
-
-    -- maps each page number to set of pages succeeding it
-    succSet :: Map Int (Set Int)
-    succSet =
-      Map.fromList
-        ( zipWith
-            (\page idx -> (page, Set.fromList (drop idx pages)))
-            pages
-            [1 ..]
-        )
+isCompliantWithRules rules update =
+  isNothing $ asum $ map (findViolation update) rules
 
 getMiddlePage :: Update -> Int
 getMiddlePage (Update pages) =
@@ -65,6 +46,44 @@ part1 contents =
     goodUpdates = filter (isCompliantWithRules rules) updates
     middlePages = map getMiddlePage goodUpdates
 
+-- fix an update so that it isn't violating any ordering rules
+fixUpdate :: [OrderingRule] -> Update -> Update
+fixUpdate rules (Update pages) =
+  -- while any rules are being violated, swap pages
+  case violation of
+    Just (i1, i2) -> fixUpdate rules $ Update (swapIndicesInList pages i1 i2)
+    Nothing -> Update pages
+  where
+    violation = asum $ map (findViolation (Update pages)) rules
+
+-- if violation exists, return corresponding indices in update
+findViolation :: Update -> OrderingRule -> Maybe (Int, Int)
+findViolation (Update pages) (OrderingRule (p1, p2)) =
+  asum $ map check pairs
+  where
+    -- check if the provided pair has a rule violation, and return indices if so
+    check :: ((Int, Int), (Int, Int)) -> Maybe (Int, Int)
+    check ((p, i), (p', i'))
+      | (p, p') == (p2, p1) =
+          Just (i, i')
+    check _ = Nothing
+
+    -- all pairs of (P, P') where P' succeeds P
+    pairs :: [((Int, Int), (Int, Int))]
+    pairs =
+      [ ((p, i), (p', i'))
+        | (p, i) <- indexedPages,
+          (p', i') <- drop (i + 1) indexedPages
+      ]
+      where
+        indexedPages :: [(Int, Int)]
+        indexedPages = zip pages [0 ..]
+
 part2 :: String -> Int
 part2 contents =
-  undefined
+  sum middlePages
+  where
+    (rules, updates) = parseInput contents
+    badUpdates = filter (not . isCompliantWithRules rules) updates
+    fixedUpdates = map (fixUpdate rules) badUpdates
+    middlePages = map getMiddlePage fixedUpdates
