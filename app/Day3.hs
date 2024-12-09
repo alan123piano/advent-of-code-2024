@@ -10,6 +10,7 @@ data Inst = MulInst (Int, Int) | DoInst | DontInst deriving (Show)
 newtype Parser a = Parser {runParser :: String -> Maybe (a, String)}
 
 instance Functor Parser where
+  fmap :: (a -> b) -> Parser a -> Parser b
   fmap = liftM
 
 instance Applicative Parser where
