@@ -23,6 +23,15 @@ data Grid a = Grid
 
 newtype Coord = Coord (Int, Int) deriving (Eq, Ord, Show)
 
+instance Functor Grid where
+  fmap :: (a -> b) -> Grid a -> Grid b
+  fmap f g =
+    Grid
+      { gValues = fmap f (gValues g),
+        gNRows = gNRows g,
+        gNCols = gNCols g
+      }
+
 parseGrid :: String -> Grid Char
 parseGrid s =
   Grid
