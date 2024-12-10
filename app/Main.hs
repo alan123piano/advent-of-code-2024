@@ -7,6 +7,9 @@ import qualified Day3
 import qualified Day4
 import qualified Day5
 import qualified Day6
+import qualified Day7
+import qualified Day8
+import qualified Day9
 import System.Environment (lookupEnv)
 
 main :: IO ()
@@ -34,6 +37,12 @@ main = do
             (5, 2) -> Day5.part2
             (6, 1) -> Day6.part1
             (6, 2) -> Day6.part2
+            (7, 1) -> Day7.part1
+            (7, 2) -> Day7.part2
+            (8, 1) -> Day8.part1
+            (8, 2) -> Day8.part2
+            (9, 1) -> Day9.part1
+            (9, 2) -> Day9.part2
             (_, _) -> error $ "Unhandled (day, part): " ++ show (day, part)
         )
   let solution = runner contents
