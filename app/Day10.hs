@@ -30,6 +30,27 @@ getTrailheadScore heightMap startPos =
                   _ -> False
         Nothing -> Set.empty
 
+getTrailheadRating :: Grid Int -> Coord -> Int
+getTrailheadRating heightMap =
+  numPathsToPeak Set.empty
+  where
+    numPathsToPeak :: Set Coord -> Coord -> Int
+    numPathsToPeak visited currPos =
+      case atCoord currPos heightMap of
+        Just 9 -> 1
+        Just n -> sum $ map (numPathsToPeak (Set.insert currPos visited)) neighbors
+          where
+            neighbors = filter isValidNeighbor $ map (addCoord currPos) adjDirections
+
+            isValidNeighbor :: Coord -> Bool
+            isValidNeighbor pos =
+              not (Set.member pos visited) && heightIncreasesByOne
+              where
+                heightIncreasesByOne = case atCoord pos heightMap of
+                  Just n' | n' == n + 1 -> True
+                  _ -> False
+        Nothing -> 0
+
 part1 :: String -> Int
 part1 contents =
   sum $ map (getTrailheadScore heightMap) trailheads
@@ -40,4 +61,8 @@ part1 contents =
 
 part2 :: String -> Int
 part2 contents =
-  undefined
+  sum $ map (getTrailheadRating heightMap) trailheads
+  where
+    grid = parseGrid contents
+    heightMap = fmap ((read :: String -> Int) . (: [])) grid
+    trailheads = map fst $ filter (\(_, height) -> height == 0) $ gridToList heightMap
