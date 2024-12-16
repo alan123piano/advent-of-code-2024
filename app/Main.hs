@@ -3,6 +3,7 @@ module Main (main) where
 import Data.Maybe (fromMaybe)
 import qualified Day1
 import qualified Day10
+import qualified Day11
 import qualified Day2
 import qualified Day3
 import qualified Day4
@@ -46,6 +47,8 @@ main = do
             (9, 2) -> Day9.part2
             (10, 1) -> Day10.part1
             (10, 2) -> Day10.part2
+            (11, 1) -> Day11.part1
+            (11, 2) -> Day11.part2
             (_, _) -> error $ "Unhandled (day, part): " ++ show (day, part)
         )
   let solution = runner contents
