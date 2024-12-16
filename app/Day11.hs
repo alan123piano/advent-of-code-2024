@@ -1,32 +1,57 @@
 module Day11 (part1, part2) where
 
-parseStones :: String -> [Int]
-parseStones s =
-  map read $ words s
+import Common.List (countFreq)
+import Data.Map (Map)
+import qualified Data.Map as Map
 
-blinkOnce :: [Int] -> [Int]
-blinkOnce =
-  concatMap changeStone
+newtype Stones = Stones (Map Int Int)
+
+parseStones :: String -> Stones
+parseStones s =
+  Stones $ countFreq $ map read $ words s
+
+countStones :: Int -> Stones -> Int
+countStones numBlinks (Stones m) =
+  if numBlinks == 0
+    then
+      Map.foldr (+) 0 m
+    else
+      countStones
+        (numBlinks - 1)
+        $ Stones
+        $ Map.foldrWithKey
+          ( \k v m' ->
+              foldr
+                (\stone -> Map.insertWith (+) stone v)
+                m'
+                (nextStones k)
+          )
+          Map.empty
+          m
+
+nextStones :: Int -> [Int]
+nextStones stone
+  | stone == 0 =
+      [1]
+  | even len =
+      [n1, n2]
+  | otherwise =
+      [stone * 2024]
   where
-    changeStone :: Int -> [Int]
-    changeStone 0 = [1]
-    changeStone n
-      | even (length (show n)) =
-          [read n1, read n2]
-      where
-        nstr = show n
-        len = length nstr
-        hlen = len `div` 2
-        (n1, n2) = splitAt hlen nstr
-    changeStone n = [n * 2024]
+    nstr = show stone
+    len = length nstr
+    hlen = len `div` 2
+    (n1str, n2str) = splitAt hlen nstr
+    (n1, n2) = (read n1str, read n2str) :: (Int, Int)
 
 part1 :: String -> Int
 part1 contents =
-  length stones'
+  countStones 25 stones
   where
     stones = parseStones contents
-    stones' = last $ take 26 $ iterate blinkOnce stones
 
 part2 :: String -> Int
 part2 contents =
-  undefined
+  countStones 75 stones
+  where
+    stones = parseStones contents

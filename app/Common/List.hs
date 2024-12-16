@@ -2,17 +2,20 @@ module Common.List
   ( splitList,
     sliceList,
     swapIndicesInList,
+    countFreq,
   )
 where
 
-import Data.List (stripPrefix)
+import qualified Data.List as List
+import Data.Map (Map)
+import qualified Data.Map as Map
 
 splitList :: (Eq a) => [a] -> [a] -> [[a]]
 splitList delim =
   reducer [] []
   where
     reducer acc wip s =
-      case stripPrefix delim s of
+      case List.stripPrefix delim s of
         Just s' -> reducer (acc ++ [wip]) [] s'
         Nothing -> case s of
           (hd : tl) -> reducer acc (wip ++ [hd]) tl
@@ -38,3 +41,6 @@ swapIndicesInList xs i1 i2 =
     xl = xs !! l
     xr = xs !! r
     (l, r) = (min i1 i2, max i1 i2)
+
+countFreq :: (Ord a) => [a] -> Map a Int
+countFreq = foldr (\x -> Map.insertWith (+) x 1) Map.empty
