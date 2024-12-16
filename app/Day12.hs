@@ -1,8 +1,13 @@
 module Day12 (part1, part2) where
 
 import Common.Grid (Coord (Coord), Grid, addCoord, allCoordsInGrid, atCoord, parseGrid)
+import qualified Data.List as List
 import Data.Set (Set)
 import qualified Data.Set as Set
+
+-- A horizontal edge contains ((rowInner, rowOuter), column).
+-- A vertical edge contains ((colInner, colOuter), row).
+data Edge = Horizontal ((Int, Int), Int) | Vertical ((Int, Int), Int) deriving (Eq, Ord, Show)
 
 adjDirections :: [Coord]
 adjDirections = [Coord (-1, 0), Coord (0, 1), Coord (1, 0), Coord (0, -1)]
@@ -40,14 +45,49 @@ getArea = length
 
 getPerimeter :: Set Coord -> Int
 getPerimeter plot =
-  sum $ map getP $ Set.toList plot
+  length $ getEdges plot
+
+getEdges :: Set Coord -> [Edge]
+getEdges plot =
+  concatMap getE $ Set.toList plot
   where
-    -- get # of edges adjacent to cells not in plot
-    getP :: Coord -> Int
-    getP coord =
-      length $ filter (\adj -> not (Set.member adj plot)) adjs
+    getE :: Coord -> [Edge]
+    getE coord =
+      map (makeEdge coord) edgeAdjs
       where
         adjs = map (addCoord coord) adjDirections
+        edgeAdjs = filter (\adj -> not (Set.member adj plot)) adjs
+
+makeEdge :: Coord -> Coord -> Edge
+makeEdge (Coord (r1, c1)) (Coord (r2, c2))
+  | r1 == r2 = Vertical ((c1, c2), r1)
+  | c1 == c2 = Horizontal ((r1, r2), c1)
+  | otherwise = error "unexpected"
+
+getSides :: Set Coord -> Int
+getSides plot =
+  numHEdges + numVEdges
+  where
+    edges = getEdges plot
+    (hEdges, vEdges) =
+      foldr
+        ( \edge (hAcc, vAcc) -> case edge of
+            Horizontal ((r1, r2), c) -> (((r1, r2), c) : hAcc, vAcc)
+            Vertical ((c1, c2), r) -> (hAcc, ((c1, c2), r) : vAcc)
+        )
+        ([], [])
+        edges
+    hEdges' = List.sort hEdges
+    vEdges' = List.sort vEdges
+    countSides :: ((Int, Int), Int) -> (Maybe ((Int, Int), Int), Int) -> (Maybe ((Int, Int), Int), Int)
+    countSides ((r1, r2), c) (prev, numSides) = (Just ((r1, r2), c), numSides')
+      where
+        isNewEdge = case prev of
+          Just ((r1', r2'), c') -> (r1, r2) /= (r1', r2') || abs (c - c') > 1
+          Nothing -> True
+        numSides' = if isNewEdge then numSides + 1 else numSides
+    numHEdges = snd $ foldr countSides (Nothing, 0) hEdges'
+    numVEdges = snd $ foldr countSides (Nothing, 0) vEdges'
 
 part1 :: String -> Int
 part1 contents =
@@ -58,4 +98,7 @@ part1 contents =
 
 part2 :: String -> Int
 part2 contents =
-  undefined
+  sum $ map (\p -> getArea p * getSides p) plots
+  where
+    grid = parseGrid contents
+    plots = getPlots grid
