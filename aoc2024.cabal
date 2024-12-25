@@ -8,6 +8,7 @@ common warnings
         -Weverything
         -Wno-all-missed-specialisations
         -Wno-implicit-prelude
+        -Wno-incomplete-uni-patterns
         -Wno-missing-kind-signatures
         -Wno-missing-deriving-strategies
         -Wno-missing-safe-haskell-mode
@@ -34,6 +35,7 @@ executable aoc2024
         Day11
         Day12
         Day13
+        Day14
     build-depends:
         base^>=4.17.2.1,
         containers,
