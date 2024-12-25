@@ -1,8 +1,7 @@
 module Day13 (part1, part2) where
 
-import Common.Grid (Coord (Coord), addCoord, scaleCoord)
+import Common.Grid (Coord (Coord))
 import Common.List (splitList)
-import Data.Function (on)
 import qualified Data.List as List
 import qualified Data.Maybe as Maybe
 
@@ -11,12 +10,6 @@ data ClawMachine = ClawMachine
     cmButtonB :: Coord,
     cmPrize :: Coord
   }
-
-newtype ClawMachineInput = ClawMachineInput (Int, Int)
-
-data ClawMachineResult
-  = Prize ClawMachineInput
-  | NoPrize
 
 parseClawMachines :: String -> [ClawMachine]
 parseClawMachines s =
@@ -42,33 +35,42 @@ parseClawMachines s =
                 n2 = read $ Maybe.fromJust (("Y" ++ op) `List.stripPrefix` s2) :: Int
         _ -> error "unexpected"
 
-getCost :: ClawMachineInput -> Int
-getCost (ClawMachineInput (a, b)) = a * 3 + b
-
-solveClawMachine :: ClawMachine -> ClawMachineResult
-solveClawMachine ClawMachine {cmButtonA = ba, cmButtonB = bb, cmPrize = prize} =
-  maybe NoPrize Prize bestPress
+correctClawMachine :: ClawMachine -> ClawMachine
+correctClawMachine ClawMachine {cmButtonA = ba, cmButtonB = bb, cmPrize = Coord (p1, p2)} =
+  ClawMachine {cmButtonA = ba, cmButtonB = bb, cmPrize = Coord (p1 + offset, p2 + offset)}
   where
-    presses = [ClawMachineInput (a, b) | a <- [0 .. 100], b <- [0 .. 100]]
-    presses' = filter (\(ClawMachineInput (a, b)) -> addCoord (scaleCoord a ba) (scaleCoord b bb) == prize) presses
-    bestPress = case presses' of
-      [] -> Nothing
-      _ -> Just $ List.minimumBy (compare `on` getCost) presses'
+    offset = 10000000000000 :: Int
+
+getCost :: Int -> Int -> Int
+getCost x1 x2 = 3 * x1 + x2
+
+solveClawMachine :: ClawMachine -> Maybe Int
+solveClawMachine ClawMachine {cmButtonA = Coord (a11, a21), cmButtonB = Coord (a12, a22), cmPrize = Coord (y1, y2)} =
+  if isValid then Just (getCost x1' x2') else Nothing
+  where
+    det = a11 * a22 - a12 * a21
+    idet = 1 / fromIntegral det :: Rational
+    ai11 = idet * fromIntegral a22
+    ai21 = -(idet * fromIntegral a21)
+    ai12 = -(idet * fromIntegral a12)
+    ai22 = idet * fromIntegral a11
+    x1 = ai11 * fromIntegral y1 + ai12 * fromIntegral y2
+    x2 = ai21 * fromIntegral y1 + ai22 * fromIntegral y2
+    x1' = floor x1 :: Int
+    x2' = floor x2 :: Int
+    isValid = x1 == fromIntegral x1' && x2 == fromIntegral x2'
 
 part1 :: String -> Int
 part1 contents =
-  sum $ map getCost inputs
+  sum $ map (Maybe.fromMaybe 0) results
   where
     cms = parseClawMachines contents
     results = map solveClawMachine cms
-    inputs =
-      concatMap
-        ( \case
-            Prize i -> [i]
-            NoPrize -> []
-        )
-        results
 
 part2 :: String -> Int
 part2 contents =
-  undefined
+  sum $ map (Maybe.fromMaybe 0) results
+  where
+    cms = parseClawMachines contents
+    cms' = map correctClawMachine cms
+    results = map solveClawMachine cms'
