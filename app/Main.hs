@@ -7,6 +7,7 @@ import qualified Day11
 import qualified Day12
 import qualified Day13
 import qualified Day14
+import qualified Day15
 import qualified Day2
 import qualified Day3
 import qualified Day4
@@ -58,6 +59,8 @@ main = do
             (13, 2) -> Day13.part2
             (14, 1) -> Day14.part1
             (14, 2) -> Day14.part2
+            (15, 1) -> Day15.part1
+            (15, 2) -> Day15.part2
             (_, _) -> error $ "Unhandled (day, part): " ++ show (day, part)
         )
   let solution = runner contents
